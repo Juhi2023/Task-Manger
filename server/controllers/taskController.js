@@ -5,16 +5,15 @@ const getAllTasks =(req, res)=>{
     try{
         db.query(`SELECT * FROM tasks WHERE userID = '${req.user._id}'`, function (err, result){
             if(err){
-                return res.status(409).json({
+                return res.status(400).json({
                     status: "FAILED",
                     message: err
                 })
             }else{
-                return res.status(201).json({status:'SUCCESS', data: result})
+                return res.status(200).json({status:'SUCCESS', data: result})
             }
         })
     }catch(err){
-        console.log(err.message);
         return res.status(500).json({
             status: "FAILED",
             message: "Internal Server Error"
@@ -27,19 +26,19 @@ const addTask =(req, res)=>{
         const {title, description,}= req.body
         db.query(`INSERT INTO tasks (_id, userID, title, description, date) VALUES ('${uuidv4()}', '${req.user._id}', '${title}', '${description}', NOW())`, function (err, result){
             if(err){
-                return res.status(409).json({
+                return res.status(400).json({
                     status: "FAILED",
                     message: err
                 })
             }else{
                 db.query(`SELECT * FROM tasks WHERE userID = '${req.user._id}'`, function (err, result){
                     if(err){
-                        return res.status(409).json({
+                        return res.status(400).json({
                             status: "FAILED",
                             message: err
                         })
                     }else{
-                        return res.status(201).json({status:'SUCCESS', data: result})
+                        return res.status(200).json({status:'SUCCESS', data: result})
                     }
                 })
             }
@@ -60,21 +59,28 @@ const editTask =(req, res)=>{
         
         db.query(`UPDATE tasks SET title= '${title}', description ='${description}' WHERE _id='${id}'`, function (err, result){
             if(err){
-                return res.status(409).json({
+                return res.status(400).json({
                     status: "FAILED",
                     message: err
                 })
             }else{
-                db.query(`SELECT * FROM tasks WHERE userID = '${req.user._id}'`, function (err, result){
-                    if(err){
-                        return res.status(409).json({
-                            status: "FAILED",
-                            message: err
-                        })
-                    }else{
-                        return res.status(201).json({status:'SUCCESS', data: result})
-                    }
-                })
+                if(result===[]){
+                    db.query(`SELECT * FROM tasks WHERE userID = '${req.user._id}'`, function (err, result){
+                        if(err){
+                            return res.status(400).json({
+                                status: "FAILED",
+                                message: err
+                            })
+                        }else{
+                            return res.status(200).json({status:'SUCCESS', data: result})
+                        }
+                    })
+                }else{
+                    return res.status(400).json({
+                        status: "FAILED",
+                        message: "invalid id"
+                    })
+                }
             }
         })
     }catch(err){
@@ -94,21 +100,28 @@ const deleteTask =(req, res)=>{
         
         db.query(`DELETE FROM tasks WHERE _id='${id}'`, function (err, result){
             if(err){
-                return res.status(409).json({
+                return res.status(400).json({
                     status: "FAILED",
                     message: err
                 })
             }else{
-                db.query(`SELECT * FROM tasks WHERE userID = '${req.user._id}'`, function (err, result){
-                    if(err){
-                        return res.status(409).json({
-                            status: "FAILED",
-                            message: err
-                        })
-                    }else{
-                        return res.status(201).json({status:'SUCCESS', data: result})
-                    }
-                })
+                if(result===[]){
+                    db.query(`SELECT * FROM tasks WHERE userID = '${req.user._id}'`, function (err, result){
+                        if(err){
+                            return res.status(400).json({
+                                status: "FAILED",
+                                message: err
+                            })
+                        }else{
+                            return res.status(200).json({status:'SUCCESS', data: result})
+                        }
+                    })
+                }else{
+                    return res.status(400).json({
+                        status: "FAILED",
+                        message: "invalid id"
+                    })
+                }
             }
         })
     }catch(err){

@@ -3,9 +3,12 @@ const dotenv = require('dotenv')
 const path = require('path')
 const passport = require('passport')
 const cors = require('cors')
+const swaggerUi =require('swagger-ui-express')
 const db = require("./configs/db");
 const userRoutes = require('./routes/user')
-const taskRoutes = require('./routes/task')
+const taskRoutes = require('./routes/task');
+const swaggerJSDoc = require('swagger-jsdoc');
+const options = require('./utils/documentation');
 dotenv.config({path: path.join(__dirname, '.env')})
 const port = process.env.PORT || 5000;
 
@@ -39,6 +42,9 @@ db.query(`CREATE TABLE IF NOT EXISTS tasks (_id VARCHAR(225) PRIMARY KEY, userID
 //all routes
 app.use('/', userRoutes)
 app.use('/', taskRoutes)
+app.use('/api-docs', swaggerUi.serve)
+app.use('/api-docs', swaggerUi.setup(swaggerJSDoc(options)))
+
 
 if(process.env.NODE_ENV === 'production'){
     app.use(express.static('client/build'))

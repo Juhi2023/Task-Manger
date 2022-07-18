@@ -27,7 +27,7 @@ const signup = async (req, res)=>{
             }else{
                 bcrypt.hash(password, 10, (err, hash)=>{
                     if(err){
-                        return res.status(401).json({
+                        return res.status(400).json({
                             status: "FAILED",
                             message: err
                         })
@@ -45,7 +45,7 @@ const signup = async (req, res)=>{
                                 process.env.JWT_TOKEN,
                                 {expiresIn: "7d"})
 
-                            return res.status(201).json({status:'SUCCESS', user:{
+                            return res.status(200).json({status:'SUCCESS', user:{
                                 userID: _id,
                                 name,
                                 email,
@@ -77,14 +77,14 @@ const login = async (req, res)=>{
         }
         
         db.query(`SELECT * FROM users WHERE email = LOWER('${email}')`, function (err, result){
-            if(!result ){
+            if(result && ! result.length){
                 return res.status(400).json({
                     status: "FAILED",
                     message: 'Invailid credintials.'
                 })
             }
             
-            bcrypt.compare(password, result[0].password, (berr, bResult)=>{
+            bcrypt.compare(password, result[0].password, function(berr, bResult){
                 if(berr){
                     return res.status(400).json({
                         status: "FAILED",
@@ -96,12 +96,17 @@ const login = async (req, res)=>{
                         process.env.JWT_TOKEN,
                         {expiresIn: "7d"})
 
-                    return res.status(201).json({status:'SUCCESS', user:{
+                    return res.status(200).json({status:'SUCCESS', user:{
                         userID: result[0]._id,
                         name: result[0].name,
                         email: result[0].email,
                         token: token
                     }})
+                }else{
+                    return res.status(400).json({
+                        status: "FAILED",
+                        message: 'Invailid credintials.'
+                    })
                 }
             })
         })
@@ -130,7 +135,7 @@ const logout = async (req, res) =>{
 const loggedIn = (req, res)=>{
     try{
         if(req.user){
-            return res.status(201).json({status: 'SUCCESS', user:{
+            return res.status(200).json({status: 'SUCCESS', user:{
                 userID: req.user._id,
                 name: req.user.name,
                 email: req.user.email,
